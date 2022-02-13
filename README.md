@@ -4,7 +4,7 @@ Convert pictures of mathematical formulas to LaTeX expressions
 ### Model architecture
 The Encoder is ResNet, and the Decoder is Transformer Layers.
 <div align=center>
-<img src="https://user-images.githubusercontent.com/78400045/153750031-57acfc5b-19ff-418d-86f7-a2032245b382.png" width = "500"/>
+<img src="https://user-images.githubusercontent.com/78400045/153750031-57acfc5b-19ff-418d-86f7-a2032245b382.png" width = "350"/>
 </div>
 
 ### Training process
