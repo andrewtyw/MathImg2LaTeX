@@ -9,7 +9,7 @@ The Encoder is ResNet, and the Decoder is Transformer Layers.
 
 ### Training process
 
-First, use MLM(Mask Language Model) to pretrain Model. Then fine-tune Model. Google used MLM when pre-training Bert and got a certain improvement, so here also considers using it.
+First, use **MLM**(Mask Language Model) to **pretrain** Model. Then fine-tune Model. Google used MLM when pre-training Bert and got a certain improvement, so here also considers using it.The data flow during pre-training is as follows.
 <div align=center>
 <img src="https://user-images.githubusercontent.com/78400045/153750044-8e2c3d7f-7d18-48bf-9815-36ff406f8e17.png" width = "600" align=center />
 </div>
