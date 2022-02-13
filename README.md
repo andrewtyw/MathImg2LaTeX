@@ -3,11 +3,17 @@ Convert pictures of mathematical formulas to LaTeX expressions
 ## Method
 ### Model architecture
 The Encoder is ResNet, and the Decoder is Transformer Layers.
+<div align=center>
+<img src="https://user-images.githubusercontent.com/78400045/153750031-57acfc5b-19ff-418d-86f7-a2032245b382.png" width = "500"/>
+</div>
 
 ### Training process
-First, use MLM(Mask Language Model) to pretrain Model. Then fine-tune Model. Google used MLM when pre-training Bert and got a certain improvement, so here also considers using it.
 
-***
+First, use MLM(Mask Language Model) to pretrain Model. Then fine-tune Model. Google used MLM when pre-training Bert and got a certain improvement, so here also considers using it.
+<div align=center>
+<img src="https://user-images.githubusercontent.com/78400045/153750044-8e2c3d7f-7d18-48bf-9815-36ff406f8e17.png" width = "600" align=center />
+</div>
+
 ## How to run?
 ### 1, Get training data
 There are 10k training samples in  `/resources/data/` (far from enough to train a good model). Run the following to unzip.
@@ -33,6 +39,11 @@ python  train.py --from_MLM True --lr 3e-4 --d_model 256 --dim_feedforward 256 -
 ***
 ## Evaluation
 Put your images you need to predict here: `/resources/evaluate_imgs`
+
+<div align=center>
+<img src="https://user-images.githubusercontent.com/78400045/153750227-0f745bff-be12-4528-b032-42b403fdc196.png" width = "200"/>
+</div>
+
 ```
 python  evaluate.py --img_name img1.png
 ```
