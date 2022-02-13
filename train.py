@@ -16,7 +16,6 @@ from models.my_data_loader import get_loader
 import torch
 import pickle
 from models.lit_models import Lit_Resnet_Transformer
-from models.lit_models import Lit_Resnet_Transformer
 import numpy as np
 import nltk
 import argparse
@@ -29,26 +28,22 @@ from data_preprocess.vocab import Vocabulary,build_vocab
 def main(args):
     print(args)
     setup_seed(args.seed) #设置随机种子
-    args.save_dir = os.path.join(CURR_DIR,"resources/")
-    if not os.path.isdir(args.save_dir):os.makedirs()
-    nltk.download('punkt')
+    args.save_dir = os.path.join(CURR_DIR,"output/")
+    if not os.path.isdir(args.save_dir):os.makedirs(args.save_dir)
+    # nltk.download('punkt')  # uncomment it if you did not download it 
     
     
-    max_epoch = args.epoches
     from_check_point = args.from_check_point
     if from_check_point:
         checkpoint_path = get_best_checkpoint("/data/zzengae/tywang/save_model/physics/from_MLM_pretrain_256")
         checkpoint = torch.load(checkpoint_path)
         # args = checkpoint['args']
-    # print("Training args:", args)
-
-    # nltk.download('punkt')
 
 
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.repeat(3,1,1)),
-        transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))   # 这个可以改一下
+        transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))   
     ])   # 修改的位置
 
     vocab_txt_file_path =  os.path.join(CURR_DIR,"resources/vocab.txt")
@@ -85,7 +80,7 @@ def main(args):
     val_data_loader = get_loader(labels_lst_file_path= labels_lst_file_path, images_lst_file_path= val_images_lst_file_path,
                                 images_dir_path= images_dir_path, batch_size= args.batch_size, vocab=vocab,
                                 transform= transform)
-    batch = next(iter(train_data_loader))
+
     args.step_per_epoch = len(train_data_loader)
     lit_model = Lit_Resnet_Transformer(
                         args,
@@ -196,12 +191,12 @@ if __name__ == "__main__":
                         default=False, help="Training from checkpoint or not")
 
     #训练模式
-    parser.add_argument("--MLM_pretrain_mode",type=bool, default=False, help="是否MLM预训练模式")
+    parser.add_argument("--MLM_pretrain_mode",type=bool, default=True, help="是否MLM预训练模式")
     parser.add_argument("--from_MLM",type=bool, default=False, help="是否使用预训练模型进行训练")
     parser.add_argument("--test_mode", default=False, help="test mode=true, train& validate会只会分别跑3个step,用于检查代码有没有bug")
 
     #设备相关
-    parser.add_argument("--cuda_index", default=0, help="the index of cuda device")
+    parser.add_argument("--cuda_index", default=2, help="the index of cuda device")
 
     
     

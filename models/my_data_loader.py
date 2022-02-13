@@ -45,13 +45,14 @@ class CocoDataset(data.Dataset):
                 #here we read until -1 because we want to ignore the /n
                 label = linecache.getline(labels_lst_file_path, index+1)[:-1]
                 self.labels.append(label)
-    def resize_image(self,image, size):
+    @staticmethod
+    def resize_image(image, size):
         """Resize an image to the given size."""
         return image.resize((size, size), Image.ANTIALIAS)
     def __getitem__(self, index):
         image_path = self.images_path[index]
         pil_image = Image.open(image_path)
-        pil_image = self.resize_image(pil_image, self.size)
+        pil_image = CocoDataset.resize_image(pil_image, self.size)
         label = self.labels[index]
         if self.transform:
             image = self.transform(pil_image)

@@ -162,7 +162,10 @@ class Trainer(object):
                 self.best_val_loss = avg_loss
             if avg_batch_exact_match>self.best_exact_match and not self.args.test_mode:
                 self.best_exact_match = avg_batch_exact_match
-                self.save_model('best_ckpt')
+                if self.args.MLM_pretrain_mode:
+                    self.save_model('MLM_pretrain_best_ckpt')
+                else:
+                    self.save_model('best_ckpt')
             else:
                 self.waiting+=1 # if not hit better score, waiting counter +=1
             print()
@@ -187,7 +190,6 @@ class Trainer(object):
             'epoch': self.epoch,
             'args': self.args
         }, save_path)
-        self.save(self.args,join(self.args.save_dir, model_name+'_args' + '.pt'))
 
     def plot_losses(self):
         # visualize the loss as the network trained
@@ -196,17 +198,21 @@ class Trainer(object):
         plt.plot(range(1, len(self.epoch_val_losses) + 1), self.epoch_val_losses,  label='Validation Loss')
 
         # find position of lowest validation loss
-        minposs = self.epoch_val_losses.index(min(self.epoch_val_losses)) + 1
-        plt.axvline(minposs, linestyle='--', color='r', label='Early Stopping Checkpoint')
+        # minposs = self.epoch_val_losses.index(min(self.epoch_val_losses)) + 1
+        # plt.axvline(minposs, linestyle='--', color='r', label='Early Stopping Checkpoint')
 
-        plt.xlabel('epochs')
-        plt.ylabel('loss')
-
+        plt.xlabel('epoch',fontsize=15)
+        plt.ylabel('loss',fontsize=15)
+        plt.yticks(fontsize=10)
+        plt.xticks(fontsize=10)
         plt.grid(True)
-        plt.legend()
+        plt.legend(fontsize=15)
         plt.tight_layout()
         plt.show()
-        fig.savefig( join(self.args.save_dir,'loss_plot.png'), bbox_inches='tight')
+        if self.args.MLM_pretrain_mode:
+            fig.savefig( join(self.args.save_dir,'MLM_pretrain_loss_plot.png'), bbox_inches='tight')
+        else:
+            fig.savefig( join(self.args.save_dir,'loss_plot.png'), bbox_inches='tight')
 
     def plot_scores(self):
         fig = plt.figure(figsize=(10, 8))
@@ -216,7 +222,13 @@ class Trainer(object):
         plt.plot(range(1, len(self.val_exact_match_list) + 1), self.val_exact_match_list, 'r--', label = 'Exact match rate')
         plt.title('EditDistance&ExactMatch \n max_EditDistance:{:.4f} max_ExactMatch:{:.4f}'.format(max_edit_dis,max_exact_match))
         plt.xlabel('Epoch')
-        plt.ylabel('rate')
-        plt.legend(loc = 'lower right')
+        plt.legend(loc = 'lower right',fontsize=15)
+        plt.yticks(fontsize=10)
+        plt.xticks(fontsize=10)
+        plt.grid(True)
+        plt.tight_layout()
         plt.show()
-        fig.savefig(join(self.args.save_dir,'score_plot.png'), bbox_inches='tight')
+        if self.args.MLM_pretrain_mode:
+            fig.savefig(join(self.args.save_dir,'MLM_pretrain_score_plot.png'), bbox_inches='tight')
+        else:
+            fig.savefig(join(self.args.save_dir,'score_plot.png'), bbox_inches='tight')
