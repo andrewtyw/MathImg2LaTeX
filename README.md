@@ -1,1 +1,1 @@
-# Img2LaTeX
+# MathImg2LaTeX
