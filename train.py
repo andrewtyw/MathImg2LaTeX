@@ -100,6 +100,7 @@ def main(args):
     optimizer, scheduler = lit_model.configure_optimizers()
 
     if args.from_MLM:
+        checkpoint = torch.load(os.path.join(CURR_DIR,"output/MLM_pretrain_best_ckpt.pt"))
         lit_model.models.load_state_dict(checkpoint['model_state_dict']) #MLM仅仅加载模型参数即可, 相当于重新训练
         trainer = Trainer(optimizer, 
                          lit_model, 
@@ -191,7 +192,7 @@ if __name__ == "__main__":
                         default=False, help="Training from checkpoint or not")
 
     #训练模式
-    parser.add_argument("--MLM_pretrain_mode",type=bool, default=True, help="是否MLM预训练模式")
+    parser.add_argument("--MLM_pretrain_mode",type=bool, default=False, help="是否MLM预训练模式")
     parser.add_argument("--from_MLM",type=bool, default=False, help="是否使用预训练模型进行训练")
     parser.add_argument("--test_mode", default=False, help="test mode=true, train& validate会只会分别跑3个step,用于检查代码有没有bug")
 

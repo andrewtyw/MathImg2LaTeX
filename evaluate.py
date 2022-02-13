@@ -43,7 +43,7 @@ def eval(myargs):
         transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
         transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
     ])
-    checkpoint = torch.load(myargs.checkpoint_path,map_location ='cpu')
+    checkpoint = torch.load(os.path.join(CURR_DIR,"output/best_ckpt.pt"),map_location ='cpu')
     args = checkpoint['args']
     args.cuda_index = -1  #cpu
     vocab_txt_file_path = os.path.join(CURR_DIR,"resources/vocab.txt")
@@ -77,7 +77,6 @@ def eval(myargs):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--checkpoint_path", type=str,default="/data/tywang/img2latex/save_model/best_ckpt.pt", help="as named")
     parser.add_argument("--img_name", type=str,default="img1.png", 
                 help="img which needs evaluation should be placed in 'Img2LaTeX/resources/evaluate_imgs/' ")
 

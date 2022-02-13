@@ -69,9 +69,6 @@ class Lit_Resnet_Transformer():
         return loss
     
     def cal_loss_editDistance_exactMatch(self, batch):
-        """
-        经检查,这个函数只有在validation的时候用
-        """
         with torch.no_grad():
             imgs, targets,mask_target,length = batch
             if mask_target is not None:
