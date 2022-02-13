@@ -4,6 +4,7 @@ import torch.nn as nn
 from typing import List
 from models.score import  exact_match_score, edit_distance
 from models.models import ResNet_Transformer
+import transformers
 import torch
 
 def get_device(cuda_index:int):
@@ -42,7 +43,7 @@ class Lit_Resnet_Transformer():
         self.weight_decay = weight_decay
         self.milestones = milestones
         self.gamma = gamma
-
+        self.args = args
         self.models = ResNet_Transformer(
             args,
             d_model, dim_feedforward,
@@ -90,7 +91,12 @@ class Lit_Resnet_Transformer():
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.models.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.milestones, gamma=self.gamma)
+        # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.milestones, gamma=self.gamma)
+        scheduler = transformers.get_cosine_schedule_with_warmup(                                    
+            optimizer,
+            num_warmup_steps=self.args.step_per_epoch//2, #int(1000*len(train_loader)/2128.875)
+            num_training_steps = self.args.epoches*(self.args.step_per_epoch)
+        )
         return optimizer, scheduler
     
 

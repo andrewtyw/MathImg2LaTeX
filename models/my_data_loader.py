@@ -25,12 +25,13 @@ import pickle
 
 class CocoDataset(data.Dataset):
     def __init__(self, labels_lst_file_path, 
-    images_lst_file_path, images_dir_path, vocab,transform = None) -> None:
+    images_lst_file_path, images_dir_path, vocab,transform = None,size=256) -> None:
         super().__init__()
         self.images_path = []
         self.labels = []
         self.transform = transform
         self.vocab = vocab
+        self.size = size
 
         index_list = []
         with open(images_lst_file_path, 'r') as f:  # eg '/data/tywang/img2latex/im2latex_train_filter.lst'
@@ -44,10 +45,13 @@ class CocoDataset(data.Dataset):
                 #here we read until -1 because we want to ignore the /n
                 label = linecache.getline(labels_lst_file_path, index+1)[:-1]
                 self.labels.append(label)
-        
+    def resize_image(self,image, size):
+        """Resize an image to the given size."""
+        return image.resize((size, size), Image.ANTIALIAS)
     def __getitem__(self, index):
         image_path = self.images_path[index]
         pil_image = Image.open(image_path)
+        pil_image = self.resize_image(pil_image, self.size)
         label = self.labels[index]
         if self.transform:
             image = self.transform(pil_image)

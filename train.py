@@ -20,20 +20,20 @@ from models.lit_models import Lit_Resnet_Transformer
 import numpy as np
 import nltk
 import argparse
-from models.utils import get_checkpoint,setup_seed,get_best_checkpoint
+from models.utils import setup_seed,get_best_checkpoint,exist
 from models.training import Trainer
 from models.MLM_pretrain import MaskLanguageModel
 from data_preprocess.vocab import Vocabulary,build_vocab
 
 
 def main(args):
-    
-    if not os.path.isdir(args.save_dir):
-        os.makedirs(args.save_dir)
-    # nltk.download('punkt')
-    # get args
     print(args)
     setup_seed(args.seed) #设置随机种子
+    args.save_dir = os.path.join(CURR_DIR,"resources/")
+    if not os.path.isdir(args.save_dir):os.makedirs()
+    nltk.download('punkt')
+    
+    
     max_epoch = args.epoches
     from_check_point = args.from_check_point
     if from_check_point:
@@ -51,36 +51,25 @@ def main(args):
         transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))   # 这个可以改一下
     ])   # 修改的位置
 
-    # labels_lst_file_path = "data/im2latex_formulas.norm.lst"
-    # train_images_lst_file_path = "data/im2latex_train_filter.lst"
-    # val_images_lst_file_path = "data/im2latex_validate_filter.lst"
-    # images_dir_path = "data/math_formula_images_grey_no_chinese_resized/"
-
-    # math
-    # labels_lst_file_path = "/home/zzengae/WangTianyin/Latex_rc/scr_v8/full_data/im2latex_formulas.norm.lst"
-    # train_images_lst_file_path = "/home/zzengae/WangTianyin/Latex_rc/scr_v8/full_data/im2latex_train_filter.lst"
-    # val_images_lst_file_path = "/home/zzengae/WangTianyin/Latex_rc/scr_v8/full_data/im2latex_validate_filter.lst"
-    # images_dir_path = "/home/zzengae/WangTianyin/Latex_rc/scr_v8/full_data/math_formula_images_grey_no_chinese_resized/"
-    # train_batch_size = val_batch_size = 64
-    # vocab_pkl_file_path = "/home/zzengae/WangTianyin/Latex_rc/scr_v8/full_data/vocab.pkl"
-
+    vocab_txt_file_path =  os.path.join(CURR_DIR,"resources/vocab.txt")
     labels_lst_file_path = '/data/tywang/img2latex/im2latex_formulas.norm.lst' 
     train_images_lst_file_path = "/data/tywang/img2latex/im2latex_train_filter.lst"
     val_images_lst_file_path = "/data/tywang/img2latex/im2latex_validate_filter.lst"
-    images_dir_path = "/data/tywang/img2latex/math_formula_images_grey_no_chinese_resized/"
+    images_dir_path = "/data/tywang/img2latex/math_formula_images_grey_no_chinese/"  # math_formula_images_grey_no_chinese_resized
     
-    # physics
-    # labels_lst_file_path = "/data/zzengae/tywang/save_model/physics/im2latex_formulas.norm.lst"
-    # train_images_lst_file_path = "/data/zzengae/tywang/save_model/physics/im2latex_train_filter.lst"
-    # val_images_lst_file_path = "/data/zzengae/tywang/save_model/physics/im2latex_validate_filter.lst"
-    # images_dir_path = "/data/zzengae/tywang/save_model/physics/physics_formula_images_grey_no_chinese_resized/"
-    # train_batch_size = val_batch_size = 64
-    # vocab_pkl_file_path = "/data/zzengae/tywang/save_model/physics/vocab.pkl"
+    
 
-    train_batch_size  = args.batch_size
-    val_batch_size = 64
 
-    vocab_txt_file_path = '/home/tywang/myURE/Img2LaTeX/resources/vocab.txt'
+    # 正式使用这个
+    # labels_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_formulas.norm.lst")
+    # train_images_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_train_filter.lst")
+    # val_images_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_validate_filter.lst")
+    # images_dir_path = os.path.join(CURR_DIR,"resources/data/imgs")  
+    if not (exist(labels_lst_file_path) and exist(train_images_lst_file_path) and exist(val_images_lst_file_path) 
+                                        and exist(vocab_txt_file_path)):
+        print("file don't exist, run  prepare_data.py first!")
+        sys.exit() 
+    
     vocab = build_vocab(vocab_txt_file_path)
     #根据bert-base-uncased的词表, [MASK] token 存在, 因此直接加[MASK] token 
 
@@ -90,13 +79,14 @@ def main(args):
         MLM = MaskLanguageModel(vocab)
     else:MLM = None
     train_data_loader = get_loader(labels_lst_file_path= labels_lst_file_path, images_lst_file_path= train_images_lst_file_path,
-                                images_dir_path= images_dir_path, batch_size= train_batch_size, vocab=vocab,
+                                images_dir_path= images_dir_path, batch_size= args.batch_size, vocab=vocab,
                                 transform= transform)
 
     val_data_loader = get_loader(labels_lst_file_path= labels_lst_file_path, images_lst_file_path= val_images_lst_file_path,
-                                images_dir_path= images_dir_path, batch_size= val_batch_size, vocab=vocab,
+                                images_dir_path= images_dir_path, batch_size= args.batch_size, vocab=vocab,
                                 transform= transform)
     batch = next(iter(train_data_loader))
+    args.step_per_epoch = len(train_data_loader)
     lit_model = Lit_Resnet_Transformer(
                         args,
                         d_model=args.d_model, 
@@ -109,7 +99,8 @@ def main(args):
                         eos_index=vocab('<end>'), 
                         pad_index=vocab('<pad>'),
                         unk_index=vocab('<unk>'), 
-                        num_classes=num_classes)
+                        num_classes=num_classes,
+                        lr=args.lr)
     print("init model ok")
     optimizer, scheduler = lit_model.configure_optimizers()
 
@@ -123,7 +114,7 @@ def main(args):
                          args,
                          MLM=MLM,
                          init_epoch=0, 
-                         last_epoch=max_epoch)
+                         last_epoch=args.epoches)
     elif from_check_point:
         lit_model.models.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -138,7 +129,7 @@ def main(args):
                         args,
                         MLM=MLM,
                         init_epoch=epoch, 
-                        last_epoch=max_epoch)
+                        last_epoch=args.epoches)
     else:
         trainer = Trainer(optimizer, 
                          lit_model, 
@@ -148,7 +139,7 @@ def main(args):
                          args,
                          MLM=MLM,
                          init_epoch=0, 
-                         last_epoch=max_epoch)
+                         last_epoch=args.epoches)
     # begin training
     trainer.train()
 
@@ -158,14 +149,16 @@ if __name__ == "__main__":
     # 训练数据文件夹
     parser.add_argument("--data_dir", type=str,
                         default="/data/zzengae/tywang/save_model/physics", # "/data/zzengae/tywang/save_model/math/math" 数学#############################################################
-                        help="data_dir之下, 有这几个文件:"+
+                        help="in data_dir, has:"+
                         "im2latex_formulas.norm.lst"+
                         "im2latex_train_filter.lst"+
                         "im2latex_validate_filter.lst"+
-                        "math_formula_images_grey_no_chinese_resized"+
-                        "vocab.pkl"
+                        "/imgs"
                         )
-
+    #文件保存相关
+    parser.add_argument("--save_dir", type=str,
+                        default="/data/tywang/img2latex/save_model",    
+                        help="best-model, 评价指标的变化图, 评价指标数据,都会存到这个文件夹之下")
     # Lit_Resnet_Transformer模型参数
     parser.add_argument("--max_output_len", type=int,
                         default=210, help="对于math,200合适, 150报错")
@@ -183,10 +176,8 @@ if __name__ == "__main__":
                         default=4, help="as named")
     #训练参数
     parser.add_argument("--batch_size", type=int, default=64) 
-    parser.add_argument("--epoches", type=int, default=31)
-    parser.add_argument("--lr", type=float, default=3e-4,
-                        help="Learning Rate")
-    parser.add_argument("--min_lr", type=float, default=3e-5,
+    parser.add_argument("--epoches", type=int, default=30)
+    parser.add_argument("--lr", type=float, default=1e-3,
                         help="Learning Rate")
     parser.add_argument("--sample_method", type=str, default="teacher_forcing",
                         choices=('teacher_forcing', 'exp', 'inv_sigmoid'),
@@ -197,19 +188,12 @@ if __name__ == "__main__":
                              "Or a constant in Inverse sigmoid decay Equation. "
                              "See details in https://arxiv.org/pdf/1506.03099.pdf"
                         )
-    parser.add_argument("--lr_decay", type=float, default=0.5,
-                        help="Learning Rate Decay Rate")
-    parser.add_argument("--lr_patience", type=int, default=3,
-                        help="Learning Rate Decay Patience")
-    parser.add_argument("--clip", type=float, default=2.0,
-                        help="The max gradient norm")
     
     parser.add_argument("--print_freq", type=int, default=1,
                         help="The frequency to print message")
 
     parser.add_argument("--from_check_point", action='store_true',
                         default=False, help="Training from checkpoint or not")
-    parser.add_argument("--accumulation_step", default=1, help="梯度累计步数") 
 
     #训练模式
     parser.add_argument("--MLM_pretrain_mode",type=bool, default=False, help="是否MLM预训练模式")
@@ -217,12 +201,9 @@ if __name__ == "__main__":
     parser.add_argument("--test_mode", default=False, help="test mode=true, train& validate会只会分别跑3个step,用于检查代码有没有bug")
 
     #设备相关
-    parser.add_argument("--cuda_index", default=3, help="cuda设备index")
+    parser.add_argument("--cuda_index", default=0, help="the index of cuda device")
 
-    #文件保存相关
-    parser.add_argument("--save_dir", type=str,
-                        default="/data/tywang/img2latex/save_model",    
-                        help="checkpoints, best-model, 评价指标的变化图, 评价指标数据,都会存到这个文件夹之下")
+    
     
     args = parser.parse_args()
 

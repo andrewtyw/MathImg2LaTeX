@@ -45,14 +45,14 @@ def data_process():
 
 
 
-    # input_labels_dir_path = '/data/tywang/img2latex/math_formula_images_grey_labels_no_chinese/'  # 对应的label的目录
-    # output_lst_file_path = '/data/tywang/img2latex/im2latex_formulas.norm.lst'   # 输出的目录
-    # output_lst_dir_path = '/data/tywang/img2latex/'
-    # input_images_file_path = '/data/tywang/img2latex/math_formula_images_grey_no_chinese/'  # 对应的image的目录
-    # labels_num = None
-    # split_to_train_val_test(input_labels_dir_path=input_labels_dir_path, output_lst_dir_path=output_lst_dir_path,
-    #                             output_lst_file_path=output_lst_file_path, input_images_file_path=input_images_file_path,
-    #                                 labels_num=labels_num)
+    input_labels_dir_path = '/data/tywang/img2latex/math_formula_images_grey_labels_no_chinese/'  # 对应的label的目录
+    output_lst_file_path = '/data/tywang/img2latex/im2latex_formulas.norm.lst'   # 输出的目录
+    output_lst_dir_path = '/data/tywang/img2latex/'
+    input_images_file_path = '/data/tywang/img2latex/math_formula_images_grey_no_chinese/'  # 对应的image的目录
+    labels_num = None
+    split_to_train_val_test(input_labels_dir_path=input_labels_dir_path, output_lst_dir_path=output_lst_dir_path,
+                                output_lst_file_path=output_lst_file_path, input_images_file_path=input_images_file_path,
+                                    labels_num=labels_num)
 
 
     input_images_dir_path = output_matching_images_dir_path

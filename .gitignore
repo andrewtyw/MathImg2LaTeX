@@ -10,17 +10,16 @@ redundancy/*
 *.log
 *.ipynb
 *.pth
-*.txt
-*.zip
 onnx/
 *.jsonl
 .ignore/
-Cal_f1/
-WIKI/
-TACRED/
+*.lst
+resources/data/imgs
+resources/data/labels
 # Visual Studio Code
 .vscode
-
+*.png
+select_demo_data.py
 # PyCharm
 .idea
 
