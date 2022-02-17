@@ -32,41 +32,32 @@ def main(args):
     if not os.path.isdir(args.save_dir):os.makedirs(args.save_dir)
     # nltk.download('punkt')  # uncomment it if you did not download it 
     
-    
-    from_check_point = args.from_check_point
-    if from_check_point:
-        checkpoint_path = get_best_checkpoint("/data/zzengae/tywang/save_model/physics/from_MLM_pretrain_256")
-        checkpoint = torch.load(checkpoint_path)
-        # args = checkpoint['args']
-
 
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Lambda(lambda x: x.repeat(3,1,1)),
         transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))   
-    ])   # 修改的位置
+    ])   
 
     vocab_txt_file_path =  os.path.join(CURR_DIR,"resources/vocab.txt")
-    labels_lst_file_path = '/data/tywang/img2latex/im2latex_formulas.norm.lst' 
-    train_images_lst_file_path = "/data/tywang/img2latex/im2latex_train_filter.lst"
-    val_images_lst_file_path = "/data/tywang/img2latex/im2latex_validate_filter.lst"
-    images_dir_path = "/data/tywang/img2latex/math_formula_images_grey_no_chinese/"  # math_formula_images_grey_no_chinese_resized
+    # labels_lst_file_path = '/data/tywang/img2latex/im2latex_formulas.norm.lst' 
+    # train_images_lst_file_path = "/data/tywang/img2latex/im2latex_train_filter.lst"
+    # val_images_lst_file_path = "/data/tywang/img2latex/im2latex_validate_filter.lst"
+    # images_dir_path = "/data/tywang/img2latex/math_formula_images_grey_no_chinese/"  # math_formula_images_grey_no_chinese_resized
     
     
 
 
-    # 正式使用这个
-    # labels_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_formulas.norm.lst")
-    # train_images_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_train_filter.lst")
-    # val_images_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_validate_filter.lst")
-    # images_dir_path = os.path.join(CURR_DIR,"resources/data/imgs")  
+    labels_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_formulas.norm.lst")
+    train_images_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_train_filter.lst")
+    val_images_lst_file_path = os.path.join(CURR_DIR,"resources/data/im2latex_validate_filter.lst")
+    images_dir_path = os.path.join(CURR_DIR,"resources/data/imgs")  
     if not (exist(labels_lst_file_path) and exist(train_images_lst_file_path) and exist(val_images_lst_file_path) 
                                         and exist(vocab_txt_file_path)):
         print("file don't exist, run  prepare_data.py first!")
         sys.exit() 
     
     vocab = build_vocab(vocab_txt_file_path)
-    #根据bert-base-uncased的词表, [MASK] token 存在, 因此直接加[MASK] token 
 
     num_classes = len(vocab.word2idx)
 
@@ -100,6 +91,7 @@ def main(args):
     optimizer, scheduler = lit_model.configure_optimizers()
 
     if args.from_MLM:
+        print("load from MLM")
         checkpoint = torch.load(os.path.join(CURR_DIR,"output/MLM_pretrain_best_ckpt.pt"))
         lit_model.models.load_state_dict(checkpoint['model_state_dict']) #MLM仅仅加载模型参数即可, 相当于重新训练
         trainer = Trainer(optimizer, 
@@ -111,7 +103,8 @@ def main(args):
                          MLM=MLM,
                          init_epoch=0, 
                          last_epoch=args.epoches)
-    elif from_check_point:
+    elif args.from_check_point:
+        checkpoint = torch.load(os.path.join(CURR_DIR,"output/best_ckpt.pt"))
         lit_model.models.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         epoch = checkpoint['epoch']
@@ -136,7 +129,6 @@ def main(args):
                          MLM=MLM,
                          init_epoch=0, 
                          last_epoch=args.epoches)
-    # begin training
     trainer.train()
 
 if __name__ == "__main__":
@@ -193,11 +185,11 @@ if __name__ == "__main__":
 
     #训练模式
     parser.add_argument("--MLM_pretrain_mode",type=bool, default=False, help="是否MLM预训练模式")
-    parser.add_argument("--from_MLM",type=bool, default=False, help="是否使用预训练模型进行训练")
+    parser.add_argument("--from_MLM",type=bool, default=True, help="是否使用预训练模型进行训练")
     parser.add_argument("--test_mode", default=False, help="test mode=true, train& validate会只会分别跑3个step,用于检查代码有没有bug")
 
     #设备相关
-    parser.add_argument("--cuda_index", default=2, help="the index of cuda device")
+    parser.add_argument("--cuda_index", default=0, help="the index of cuda device")
 
     
     

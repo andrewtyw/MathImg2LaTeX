@@ -93,12 +93,12 @@ class Trainer(object):
             valid_loss = np.average(self.batch_val_losses)
             self.epoch_train_losses.append(train_loss)
             self.epoch_val_losses.append(valid_loss)
-            res = {
+            self.res = {
                 "val_losses":self.epoch_val_losses,
                 "val_editDistances":self.val_cer_list,
                 "val_exact_match":self.val_exact_match_list
             }
-            self.save(res,join(self.args.save_dir,'res.pkl'))
+            self.save(self.res,join(self.args.save_dir,'res_fromMLM.pkl'))
             # clear lists to track next epoch
             self.batch_train_losses = []
             self.batch_val_losses = []
