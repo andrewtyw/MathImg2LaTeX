@@ -49,8 +49,7 @@ python  evaluate.py --img_name img1.png
 ```
 f ( f ( \sin \alpha ) ) = 2
 
-## Result
-### Evaluation Metrics
+## Evaluation Metrics
 - Exact Match: **Proportion** that the prediction is exactly the same with ground truth.
 - Edit distance: Given the prediction and ground truth, the minimum number of operations required to transform prediction into ground truth.
 
